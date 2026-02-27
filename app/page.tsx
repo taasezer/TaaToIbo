@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, Sparkles, ArrowDown } from "lucide-react";
+import type { Variants } from "framer-motion";
+import { Loader2, Sparkles, ArrowDown, AlertTriangle } from "lucide-react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Header } from "@/components/layout/Header";
@@ -20,8 +21,6 @@ import { useAppStore } from "@/store/useAppStore";
 import { useExtraction } from "@/hooks/useExtraction";
 import type { GarmentImage, PerspectivePoints } from "@/types";
 
-import type { Variants } from "framer-motion";
-
 // Animation variants for section transitions
 const sectionVariants: Variants = {
   hidden: { opacity: 0, y: 30 },
@@ -31,7 +30,15 @@ const sectionVariants: Variants = {
 
 export default function Home() {
   const store = useAppStore();
-  const { extract, isLoading, progress, stepMessage, error, retry } = useExtraction();
+  const {
+    detect,
+    processSelection,
+    isLoading,
+    progress,
+    stepMessage,
+    error,
+    retry,
+  } = useExtraction();
 
   // Clean up object URLs on unmount
   useEffect(() => {
@@ -50,37 +57,31 @@ export default function Home() {
     [store]
   );
 
-  // Handle "Extract" button click
+  // Handle "Extract Design" button — starts Phase 1 (detection only)
   const handleExtract = useCallback(() => {
     if (store.image) {
-      extract(store.image);
+      detect(store.image);
     }
-  }, [store.image, extract]);
+  }, [store.image, detect]);
 
-  // Handle selection confirmation from overlay
+  // Handle selection confirmation from overlay — starts Phase 2 (process + bg removal)
   const handleConfirmSelection = useCallback(
     (adjustedPoints: PerspectivePoints | null) => {
+      if (!store.image || !store.detection) return;
       if (adjustedPoints) {
         store.setAdjustedPoints(adjustedPoints);
       }
-      // Continue processing with confirmed selection
-      if (store.image) {
-        store.setProcessingStep("processing");
-        // Re-trigger extraction pipeline from process step
-        // The useExtraction hook handles the full pipeline,
-        // so we restart the extraction which will pick up adjustedPoints
-        extract(store.image);
-      }
+      processSelection(store.image, store.detection, adjustedPoints);
     },
-    [store, extract]
+    [store, processSelection]
   );
 
-  // Handle re-detection
+  // Handle re-detection — runs detect again with the same image
   const handleRedetect = useCallback(() => {
     if (store.image) {
-      extract(store.image);
+      detect(store.image);
     }
-  }, [store.image, extract]);
+  }, [store.image, detect]);
 
   // Handle remove image
   const handleRemoveImage = useCallback(() => {
@@ -95,13 +96,14 @@ export default function Home() {
     store.reset();
   }, [store]);
 
-  // Determine what section to show
+  // Determine which section to show
   const showUpload = !store.image;
   const showPreview = store.image && store.processingStep === "upload";
-  const showProcessing = isLoading && !store.detection;
+  const showDetecting = isLoading && store.processingStep === "detecting";
   const showOverlay = store.detection && store.processingStep === "detected" && !isLoading;
-  const showProcessingResult = isLoading && store.detection;
+  const showProcessing = isLoading && (store.processingStep === "processing" || store.processingStep === "removing-bg");
   const showResults = store.finalImageUrl && store.processingStep === "complete";
+  const showError = store.error && !isLoading;
 
   return (
     <ThemeProvider>
@@ -185,8 +187,54 @@ export default function Home() {
                   </motion.div>
                 )}
 
-                {/* Processing state */}
-                {(showProcessing || showProcessingResult) && (
+                {/* Detecting state (Gemini analyzing) */}
+                {showDetecting && (
+                  <motion.div
+                    key="detecting"
+                    variants={sectionVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="flex flex-col items-center gap-6 max-w-md mx-auto"
+                  >
+                    <div className="flex flex-col items-center gap-4 w-full">
+                      <div className="relative">
+                        <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="h-4 w-4 rounded-full bg-primary/20 animate-ping" />
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-medium">Analyzing with Gemini 2.5 Pro...</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Detecting print region on your garment
+                        </p>
+                      </div>
+                      <Progress value={progress} className="w-full max-w-xs" />
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Detection overlay — user reviews/adjusts corners */}
+                {showOverlay && store.image && store.detection && (
+                  <motion.div
+                    key="overlay"
+                    variants={sectionVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
+                    <SelectionOverlay
+                      image={store.image}
+                      detection={store.detection}
+                      onConfirm={handleConfirmSelection}
+                      onRedetect={handleRedetect}
+                    />
+                  </motion.div>
+                )}
+
+                {/* Processing state (Sharp + bg removal) */}
+                {showProcessing && (
                   <motion.div
                     key="processing"
                     variants={sectionVariants}
@@ -214,24 +262,6 @@ export default function Home() {
                   </motion.div>
                 )}
 
-                {/* Detection overlay */}
-                {showOverlay && store.image && store.detection && (
-                  <motion.div
-                    key="overlay"
-                    variants={sectionVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                  >
-                    <SelectionOverlay
-                      image={store.image}
-                      detection={store.detection}
-                      onConfirm={handleConfirmSelection}
-                      onRedetect={handleRedetect}
-                    />
-                  </motion.div>
-                )}
-
                 {/* Results */}
                 {showResults && store.finalImageUrl && store.image && (
                   <motion.div
@@ -243,20 +273,15 @@ export default function Home() {
                     className="flex flex-col gap-6"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Compare slider */}
                       <CompareSlider
                         beforeSrc={store.image.dataUrl}
                         afterSrc={store.finalImageUrl}
                       />
-
-                      {/* Result panel */}
                       <ResultPanel
                         imageUrl={store.finalImageUrl}
                         colorPalette={store.colorPalette}
                       />
                     </div>
-
-                    {/* Download bar */}
                     <DownloadBar
                       imageUrl={store.finalImageUrl}
                       onStartOver={handleStartOver}
@@ -265,7 +290,7 @@ export default function Home() {
                 )}
 
                 {/* Error state */}
-                {error && !isLoading && (
+                {showError && (
                   <motion.div
                     key="error"
                     variants={sectionVariants}
@@ -275,7 +300,7 @@ export default function Home() {
                     className="flex flex-col items-center gap-4 max-w-md mx-auto text-center"
                   >
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-                      <span className="text-3xl">⚠️</span>
+                      <AlertTriangle className="h-8 w-8 text-destructive" />
                     </div>
                     <p className="text-lg font-medium">{error}</p>
                     <div className="flex items-center gap-3">
