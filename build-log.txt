@@ -1,0 +1,100 @@
+﻿
+> taatooibo@0.1.0 build
+> next build
+
+node.exe : ÔÜá Warning:
+ Next.js inferred your 
+workspace root, but it 
+may not be correct.
+At C:\Program Files\nod
+ejs\npm.ps1:29 char:3
++   & $NODE_EXE $NPM_CL
+I_JS $args
++   ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (ÔÜá Warning:    
+ Ne...not be correc    
+t.:String) [], Rem    o
+teException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+ We detected multiple l
+ockfiles and selected t
+he directory of C:\User
+s\tahas\package-lock.js
+on as the root director
+y.
+ To silence this warnin
+g, set `turbopack.root`
+ in your Next.js config
+, or consider removing 
+one of the lockfiles if
+ it's not needed.
+   See https://nextjs.o
+rg/docs/app/api-referen
+ce/config/next-config-j
+s/turbopack#root-direct
+ory for more informatio
+n.
+ Detected additional lo
+ckfiles: 
+   * C:\Users\tahas\Taa
+ToIbo\package-lock.json
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Ô¿» ERROR: This build i
+s using Turbopack, with
+ a `webpack` config and
+ no `turbopack` config.
+   This may be a mistak
+e.
+
+   As of Next.js 16 Tur
+bopack is enabled by de
+fault and
+   custom webpack confi
+gurations may need to b
+e migrated to Turbopack
+.
+
+   NOTE: your `webpack`
+ config may have been a
+dded by a configuration
+ plugin.
+
+   To configure Turbopa
+ck, see https://nextjs.
+org/docs/app/api-refere
+nce/next-config-js/turb
+opack
+
+   TIP: Many applicatio
+ns work fine under Turb
+opack with no configura
+tion,
+   if that is the case 
+for you, you can silenc
+e this error by passing
+ the
+   `--turbopack` or `--
+webpack` flag explicitl
+y or simply setting an 
+   empty turbopack conf
+ig in your Next config 
+file (e.g. `turbopack: 
+{}`).
+
+> Build error occurred
+Error: Call retries wer
+e exceeded
+    at ignore-listed fr
+ames {
+  type: 'WorkerError'
+}
