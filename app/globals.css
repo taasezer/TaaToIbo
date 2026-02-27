@@ -120,9 +120,52 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Safe area for notched devices */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
+}
+
+/* Reduced motion: disable all animations for accessibility */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Skip to content link (keyboard nav) */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 100;
+  padding: 8px 16px;
+  border-radius: 0 0 8px 8px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 0;
 }
 
 /* Checkerboard pattern for transparency preview */
@@ -149,13 +192,16 @@
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: oklch(0.5 0 0 / 30%);
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: oklch(0.5 0 0 / 50%);
 }
@@ -187,8 +233,15 @@
 
 /* Pulse glow animation for processing */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 8px oklch(0.65 0.2 280 / 30%); }
-  50% { box-shadow: 0 0 24px oklch(0.65 0.2 280 / 60%); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 8px oklch(0.65 0.2 280 / 30%);
+  }
+
+  50% {
+    box-shadow: 0 0 24px oklch(0.65 0.2 280 / 60%);
+  }
 }
 
 .pulse-glow {
@@ -199,4 +252,22 @@
 .compare-handle {
   cursor: ew-resize;
   touch-action: none;
+}
+
+/* Mobile-first responsive helpers */
+@media (max-width: 374px) {
+  h1 {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* Touch targets: minimum 44×44 for WCAG */
+@media (pointer: coarse) {
+
+  button,
+  [role="button"],
+  [role="slider"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }

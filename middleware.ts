@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 10;
+const MAX_REQUESTS_PER_WINDOW = 30;
 
 function getClientIp(request: NextRequest): string {
     const forwarded = request.headers.get("x-forwarded-for");
@@ -51,6 +51,11 @@ setInterval(() => {
 export function middleware(request: NextRequest) {
     // Only rate-limit API routes
     if (!request.nextUrl.pathname.startsWith("/api/")) {
+        return NextResponse.next();
+    }
+
+    // Skip rate limiting in development
+    if (process.env.NODE_ENV === "development") {
         return NextResponse.next();
     }
 

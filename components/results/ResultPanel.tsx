@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Copy, Check, Palette, Maximize2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,17 @@ interface ResultPanelProps {
 export function ResultPanel({ imageUrl, colorPalette, width, height }: ResultPanelProps) {
     const [copiedColor, setCopiedColor] = useState<string | null>(null);
     const [fullscreen, setFullscreen] = useState(false);
+
+    // Escape key closes fullscreen
+    const handleEscape = useCallback((e: KeyboardEvent) => {
+        if (e.key === "Escape") setFullscreen(false);
+    }, []);
+
+    useEffect(() => {
+        if (!fullscreen) return;
+        document.addEventListener("keydown", handleEscape);
+        return () => document.removeEventListener("keydown", handleEscape);
+    }, [fullscreen, handleEscape]);
 
     const handleCopyColor = async (hex: string) => {
         try {

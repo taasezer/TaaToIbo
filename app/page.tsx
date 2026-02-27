@@ -109,9 +109,19 @@ export default function Home() {
     <ThemeProvider>
       <ErrorBoundary>
         <div className="flex flex-col min-h-screen">
+          {/* Skip to content link for keyboard navigation */}
+          <a href="#main-content" className="skip-link">Skip to content</a>
+
           <Header />
 
-          <main className="flex-1 flex flex-col items-center px-4 sm:px-6 pb-12">
+          {/* Screen reader announcements for state changes */}
+          <div aria-live="polite" aria-atomic="true" className="sr-only">
+            {isLoading && stepMessage}
+            {error && `Error: ${error}`}
+            {showResults && "Design extraction complete. Ready to download."}
+          </div>
+
+          <main id="main-content" className="flex-1 flex flex-col items-center px-4 sm:px-6 pb-12">
             {/* Step indicator */}
             <div className="w-full max-w-xl">
               <StepIndicator currentStep={store.currentStep} />

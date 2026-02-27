@@ -50,6 +50,17 @@ export function CompareSlider({
         setIsDragging(false);
     }, []);
 
+    // Keyboard control (Left/Right arrow keys)
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            setPosition((p) => Math.max(5, p - 2));
+        } else if (e.key === "ArrowRight") {
+            e.preventDefault();
+            setPosition((p) => Math.min(95, p + 2));
+        }
+    }, []);
+
     // Handle global pointer up
     useEffect(() => {
         if (!isDragging) return;
@@ -63,15 +74,17 @@ export function CompareSlider({
             ref={containerRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border border-border cursor-ew-resize touch-none select-none"
+            className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border border-border cursor-ew-resize touch-none select-none focus-ring"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
+            onKeyDown={handleKeyDown}
             role="slider"
-            aria-label="Compare slider"
+            aria-label="Compare slider — use Left and Right arrow keys to adjust"
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(position)}
+            tabIndex={0}
         >
             {/* After image (full, background) */}
             <div className="absolute inset-0 checkerboard">

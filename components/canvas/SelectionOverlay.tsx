@@ -58,6 +58,33 @@ export function SelectionOverlay({
         setDragging(null);
     }, []);
 
+    // Keyboard navigation for corner handles (Arrow keys nudge by 1%)
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent, idx: number) => {
+            const step = 0.01;
+            let dx = 0, dy = 0;
+            switch (e.key) {
+                case "ArrowLeft": dx = -step; break;
+                case "ArrowRight": dx = step; break;
+                case "ArrowUp": dy = -step; break;
+                case "ArrowDown": dy = step; break;
+                default: return;
+            }
+            e.preventDefault();
+            setPoints((prev) => {
+                const updated = [...prev] as unknown as PerspectivePoints;
+                const [cx, cy] = updated[idx];
+                updated[idx] = [
+                    Math.max(0, Math.min(1, cx + dx)),
+                    Math.max(0, Math.min(1, cy + dy)),
+                ];
+                return updated;
+            });
+            setHasAdjusted(true);
+        },
+        []
+    );
+
     const confidencePercent = Math.round(detection.confidence * 100);
 
     // Build SVG polygon path from perspective points  
@@ -104,7 +131,7 @@ export function SelectionOverlay({
                     <div
                         key={idx}
                         className={cn(
-                            "absolute w-5 h-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-background shadow-lg cursor-grab active:cursor-grabbing transition-transform z-10",
+                            "absolute w-7 h-7 sm:w-5 sm:h-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-background shadow-lg cursor-grab active:cursor-grabbing transition-transform z-10 focus-ring",
                             dragging === idx && "scale-125 ring-2 ring-primary/50"
                         )}
                         style={{ left: `${x * 100}%`, top: `${y * 100}%` }}
@@ -112,8 +139,9 @@ export function SelectionOverlay({
                             e.preventDefault();
                             handlePointerDown(idx);
                         }}
+                        onKeyDown={(e) => handleKeyDown(e, idx)}
                         role="slider"
-                        aria-label={`Corner ${idx + 1} handle. Drag to adjust.`}
+                        aria-label={`Corner ${idx + 1} handle. Drag or use arrow keys to adjust.`}
                         aria-valuetext={`${Math.round(x * 100)}%, ${Math.round(y * 100)}%`}
                         tabIndex={0}
                     >
