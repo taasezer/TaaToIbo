@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TaaToIbo — Extract Prints from Garments",
   description:
-    "Upload a photo of any garment and TaaToIbo will detect, extract, and isolate the printed design using Gemini 3.0 Flash AI. Download as PNG, JPG, or SVG.",
+    "Upload a photo of any garment and TaaToIbo will detect, extract, and isolate the printed design using Gemini 3.0 Pro AI. Download as PNG, JPG, or SVG.",
   keywords: ["print extraction", "garment", "t-shirt", "design", "AI", "Gemini", "background removal"],
   authors: [{ name: "TaaToIbo" }],
   openGraph: {

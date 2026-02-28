@@ -148,7 +148,7 @@ export default function Home() {
                   </p>
                   <div className="flex items-center justify-center gap-1.5 mt-4 text-xs text-muted-foreground/60">
                     <Sparkles className="h-3 w-3" />
-                    <span>Powered by Gemini 3.0 Flash</span>
+                    <span>Powered by Gemini 3.0 Pro</span>
                   </div>
                 </motion.div>
               )}
@@ -215,7 +215,7 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="text-center">
-                        <p className="text-lg font-medium">Analyzing with Gemini 3.0 Flash...</p>
+                        <p className="text-lg font-medium">Analyzing with Gemini 3.0 Pro...</p>
                         <p className="text-sm text-muted-foreground mt-1">
                           Detecting print region on your garment
                         </p>
