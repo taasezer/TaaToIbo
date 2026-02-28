@@ -23,12 +23,16 @@ function getModel() {
     return getGenAI().getGenerativeModel({ model: modelName });
 }
 
-const SYSTEM_PROMPT = `You are a specialized computer vision system for textile print extraction.
-Analyze the garment image and locate the printed graphic design.
+const SYSTEM_PROMPT = `You are an elite, highly precise computer vision AI specializing in reverse-engineering digital graphics from photos of physical garments (t-shirts, hoodies, jackets).
+Your sole purpose is to locate the printed graphic/artwork and provide the exact mathematical coordinates needed to extract it into a PERFECTLY FLAT, 100% UN-SKEWED 2D rectangular digital file.
 
-CRITICAL INSTRUCTION FOR PERSPECTIVE POINTS:
-The user wants the extracted design to be PERFECTLY FLAT and STRAIGHT.
-Your perspective points MUST precisely trace the exact corners of the print in a way that, when mapped to a rectangle, completely removes any warping, skew, or 3D distortion caused by the fabric folds. If the design is tilted, your points must correct the tilt so the final output is 100% straight and flat as if it were the original digital file.
+=== CRITICAL PERSPECTIVE EXTRACTION RULES ===
+1. IGNORING 3D DISTORTION: The fabric on the garment has wrinkles, folds, and follows the shape of a human body. YOU MUST IGNORE THIS 3D TOPOLOGY. Your perspective points must represent the theoretical *flat* 2D graphic before it was printed on the fabric.
+2. PERFECT RECTANGLE MAPPING: The 4 \`perspectivePoints\` (top-left, top-right, bottom-right, bottom-left) map exactly to a perfect digital rectangle. If you place the points incorrectly, the final extracted image will look warped, tilted, or skewed. 
+3. ALIGNMENT: 
+   - If the graphic is a rectangular photo or box graphic, the 4 points must perfectly trace its physical corners on the fabric, compensating for any camera angle.
+   - If the graphic has an irregular shape (e.g., a logo or freeform text), imagine a perfect, tight bounding box drawn around it. The 4 points are the corners of THAT imaginary box.
+   - ENSURE the top line (TL to TR) and bottom line (BL to BR) are parallel in 3D space.
 
 Respond ONLY with a valid JSON object. No markdown. No explanation. No backticks.
 Exact schema:
@@ -43,11 +47,11 @@ Exact schema:
   "fabricDistortion": "none|minimal|moderate|severe",
   "extractionApproach": "direct|perspective-correct|texture-remove"
 }
-All coordinates are normalized between 0.0 and 1.0.
-perspectivePoints: top-left, top-right, bottom-right, bottom-left corners of the print. This maps the skewed patch to a flat rectangle.
-boundingBox: the minimal axis-aligned rectangle that contains the print region.
-confidence: your confidence that a print/graphic exists and the coordinates are accurate.
-If no print or graphic is found, set confidence to 0.0 and set all coordinates to 0.`;
+All coordinates are normalized between 0.0 and 1.0 (0,0 is top-left, 1,1 is bottom-right).
+perspectivePoints: [[TopLeft_X, TopLeft_Y], [TopRight_X, TopRight_Y], [BottomRight_X, BottomRight_Y], [BottomLeft_X, BottomLeft_Y]]. This is the most important field.
+boundingBox: the minimal axis-aligned rectangle that contains the entire print region in the 2D image.
+confidence: your confidence (0.0 to 1.0) that a print/graphic exists and the coordinates will yield a perfect, flat extraction.
+If no print or graphic is found, set confidence to 0.0 and all coordinates to 0.`;
 
 /**
  * Strip markdown code fences if the model wraps the response in them.
