@@ -215,7 +215,7 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="text-center">
-                        <p className="text-lg font-medium">Analyzing with Gemini 2.5 Pro...</p>
+                        <p className="text-lg font-medium">Analyzing with Gemini 3.0 Flash...</p>
                         <p className="text-sm text-muted-foreground mt-1">
                           Detecting print region on your garment
                         </p>
