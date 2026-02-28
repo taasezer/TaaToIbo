@@ -76,7 +76,7 @@ export interface ProcessingStep {
 
 export const PROCESSING_STEPS: Record<ProcessingStepId, ProcessingStep> = {
   upload: { id: "upload", label: "Upload", message: "Ready to upload", progress: 0 },
-  detecting: { id: "detecting", label: "Detect", message: "Sending to Gemini 3.0 Pro...", progress: 20 },
+  detecting: { id: "detecting", label: "Detect", message: "Sending to Nano Banana Pro...", progress: 20 },
   detected: { id: "detected", label: "Detect", message: "Print region detected", progress: 40 },
   processing: { id: "processing", label: "Process", message: "Cropping and enhancing...", progress: 60 },
   "removing-bg": { id: "removing-bg", label: "Process", message: "Removing background...", progress: 80 },
