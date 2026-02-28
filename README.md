@@ -173,3 +173,181 @@ The included `vercel.json` configures 60s timeout and 1024MB memory for API rout
 ## License
 
 MIT
+
+---
+
+# TaaToIbo (Türkçe)
+
+**Tekstil Sanatı ve Giyim → İzole Edilmiş Arka Plansız Nesne**
+
+Kıyafet fotoğraflarından basılı grafik tasarımlarını çıkaran bir web uygulaması. Bir tişört, kapüşonlu veya ceket fotoğrafı yükleyin — TaaToIbo, yapay zeka (Nano Banana Pro AI) kullanarak baskıyı algılar, kumaşı kaldırır ve izole edilmiş düz tasarımı sunar.
+
+---
+
+## Mimari
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Tarayıcı (İstemci)                    │
+│                                                               │
+│  ┌──────────┐   ┌──────────────┐   ┌─────────────────────┐  │
+│  │ DropZone  │──→│ ImagePreview │──→│ SelectionOverlay    │  │
+│  │ (yükleme) │   │ (önizleme)   │   │ (köşeleri ayarla)   │  │
+│  └──────────┘   └──────────────┘   └─────────┬───────────┘  │
+│                                                │              │
+│                                    ┌───────────▼───────────┐ │
+│                                    │  @imgly/bg-removal    │ │
+│                                    │  (WASM, istemci-tarafı)│ │
+│                                    └───────────┬───────────┘ │
+│                                                │              │
+│  ┌──────────────┐   ┌──────────┐   ┌──────────▼──────────┐  │
+│  │ DownloadBar   │◄──│ Compare  │◄──│ ResultPanel         │  │
+│  │ (PNG/JPG/SVG) │   │ Slider   │   │ (damalı arka plan)  │  │
+│  └──────────────┘   └──────────┘   └─────────────────────┘  │
+└───────────────┬────────────────────────────┬─────────────────┘
+                │                            │
+        ┌───────▼───────┐           ┌────────▼────────┐
+        │ POST           │           │ POST             │
+        │ /api/extract   │           │ /api/process     │
+        │                │           │                  │
+        │ Nano Banana Pro│           │ Sharp ardışık    │
+        │ Yapay Zekası   │           │ kesim → düzelt   │
+        │ → algılama     │           │ → iyileştir      │
+        └───────────────┘           └──────────────────┘
+```
+
+## Teknoloji Yığını
+
+| Katman | Teknoloji |
+|---|---|
+| Çerçeve | Next.js 16 (App Router, TypeScript strict) |
+| Şekillendirme | Tailwind CSS v4 + shadcn/ui |
+| Yapay Zeka (Görüş) | Nano Banana Pro (`@google/generative-ai`) |
+| Görüntü İşleme | Sharp (sunucu) |
+| Arka Plan Kaldırma | @imgly/background-removal (WASM, istemci) |
+| Durum Yönetimi | Zustand |
+| Animasyonlar | Framer Motion |
+| Doğrulama | Zod + @t3-oss/env-nextjs |
+| Dosya Yükleme | react-dropzone |
+
+## Kurulum
+
+### 1. Kopyala
+
+```bash
+git clone https://github.com/your-username/TaaToIbo.git
+cd TaaToIbo
+```
+
+### 2. Yükle
+
+```bash
+npm install
+```
+
+### 3. Yapılandır
+
+```bash
+cp .env.local.example .env.local
+```
+
+`.env.local` dosyasını düzenleyin ve Gemini API anahtarınızı ekleyin:
+
+```env
+GEMINI_API_KEY=api_anahtariniz_buraya
+```
+
+[Google AI Studio](https://aistudio.google.com/app/apikey) üzerinden bir anahtar alabilirsiniz.
+
+### 4. Geliştirme
+
+```bash
+npm run dev
+```
+
+[http://localhost:3000](http://localhost:3000) adresini açın.
+
+### 5. Derleme
+
+```bash
+npm run build
+npm start
+```
+
+## API Uç Noktaları
+
+### `POST /api/extract`
+
+Yapay zeka destekli baskı algılaması için bir kıyafet resmi gönderin.
+
+- **Girdi:** `multipart/form-data` ile `image` alanı (JPEG/PNG/WEBP, maks 10MB)
+- **Çıktı:** Sınırlayıcı kutu, perspektif noktaları, güvenilirlik, kıyafet türü, baskın renkleri içeren algılama sonucu
+
+### `POST /api/process`
+
+Algılanan baskı bölgesini kesin, perspektifini düzeltin ve iyileştirin.
+
+- **Girdi:** `imageBase64`, `detection` ve isteğe bağlı `adjustedPoints` içeren JSON
+- **Çıktı:** İşlenmiş PNG (base64), boyutlar, renk paleti
+
+## Nano Banana Pro Nasıl Kullanılır
+
+TaaToIbo, Next.js API yolları aracılığıyla (yalnızca sunucu tarafı — API anahtarı istemciye asla ulaşmaz) giysi fotoğraflarını Nano Banana Pro'ya gönderir. Model, ona şu talimatları veren özel bir sistem istemi alır:
+
+1. Kıyafet türünü (tişört, kapüşonlu, ceket) tanımla
+2. Basılı grafik bölgesini bul
+3. Normalize edilmiş sınırlayıcı kutu ve perspektif köşe koordinatlarını döndür
+4. Kumaş bozulma seviyesini değerlendir
+5. En iyi çıkarma yaklaşımını öner
+
+Yanıt, kullanılmadan önce Zod şemaları ile doğrulanır. Hız sınırlama (10 istek/dk) ve üstel geri çekilme (exponential backoff) mantığına sahip yeniden deneme mekanizması, API sınırlarına karşı koruma sağlar.
+
+## Dağıtım (Vercel)
+
+```bash
+npm i -g vercel
+vercel deploy
+```
+
+Vercel → Settings → Environment Variables içinde `GEMINI_API_KEY` değerini ayarlayın.
+
+Ekteki `vercel.json` API yolları için 60sn zaman aşımı ve 1024MB bellek yapılandırır.
+
+## Proje Yapısı
+
+```
+├── app/
+│   ├── api/
+│   │   ├── extract/route.ts    # Gemini algılama uç noktası
+│   │   └── process/route.ts    # Sharp işleme uç noktası
+│   ├── globals.css             # Tasarım sistemi
+│   ├── layout.tsx              # Kök düzen (karanlık mod, yazı tipleri)
+│   └── page.tsx                # Ana SPA sayfası
+├── components/
+│   ├── layout/                 # Üstbilgi, Altbilgi, Adım Göstergesi
+│   ├── upload/                 # Yükleme Alanı, Görüntü Önizleme
+│   ├── canvas/                 # Seçim Katmanı
+│   ├── results/                # Karşılaştırma Kaydırıcısı, Sonuç Paneli, İndirme Çubuğu
+│   └── ui/                     # shadcn bileşenleri
+├── hooks/
+│   ├── useExtraction.ts        # Yapay zeka boru hattı yönetimi
+│   └── useDownload.ts          # Dışa aktarma (PNG/JPG/SVG)
+├── lib/
+│   ├── gemini.ts               # Gemini istemcisi
+│   ├── imageProcessor.ts       # Sharp boru hattı
+│   ├── backgroundRemoval.ts    # WASM arkaplan kaldırma
+│   ├── validators.ts           # Zod şemaları
+│   ├── env.ts                  # Çevre değişkenleri doğrulaması
+│   └── utils.ts                # Araçlar
+├── store/
+│   └── useAppStore.ts          # Zustand durumu
+├── types/
+│   └── index.ts                # Tüm TypeScript arayüzleri
+├── middleware.ts               # Hız sınırlayıcı
+├── vercel.json                 # Dağıtım yapılandırması
+└── .env.local.example          # Çevre değişkenleri şablonu
+```
+
+## Lisans
+
+MIT
