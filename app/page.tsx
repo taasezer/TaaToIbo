@@ -148,7 +148,7 @@ export default function Home() {
                   </p>
                   <div className="flex items-center justify-center gap-1.5 mt-4 text-xs text-muted-foreground/60">
                     <Sparkles className="h-3 w-3" />
-                    <span>Powered by Gemini 2.5 Pro Vision</span>
+                    <span>Powered by Gemini 3.0 Flash</span>
                   </div>
                 </motion.div>
               )}

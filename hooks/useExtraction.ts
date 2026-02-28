@@ -163,21 +163,37 @@ export function useExtraction(): UseExtractionReturn {
                 const processedDataUrl = `data:image/png;base64,${processed.processedImageBase64}`;
                 store.setProcessedImage(processedDataUrl);
 
-                // Step: Client-side background removal (WASM)
-                store.setProcessingStep("removing-bg");
+                // Determine if we should skip client-side background removal
+                // If it's a full-bleed texture or a direct crop, background removal will ruin it.
+                const shouldSkipBgRemoval =
+                    detection.extractionApproach === "texture-remove" ||
+                    detection.extractionApproach === "direct";
 
-                const finalDataUrl = await removeBackground(processedDataUrl, (bgProgress) => {
-                    const mappedProgress = 80 + bgProgress * 20;
-                    useAppStore.setState({
-                        processingProgress: Math.round(mappedProgress),
-                        stepMessage:
-                            bgProgress < 0.3
-                                ? "Loading AI model..."
-                                : bgProgress < 0.7
-                                    ? "Segmenting design..."
-                                    : "Finalizing transparency...",
+                let finalDataUrl = processedDataUrl;
+
+                if (!shouldSkipBgRemoval) {
+                    // Step: Client-side background removal (WASM)
+                    store.setProcessingStep("removing-bg");
+
+                    finalDataUrl = await removeBackground(processedDataUrl, (bgProgress) => {
+                        const mappedProgress = 80 + bgProgress * 20;
+                        useAppStore.setState({
+                            processingProgress: Math.round(mappedProgress),
+                            stepMessage:
+                                bgProgress < 0.3
+                                    ? "Loading AI model..."
+                                    : bgProgress < 0.7
+                                        ? "Segmenting design..."
+                                        : "Finalizing transparency...",
+                        });
                     });
-                });
+                } else {
+                    // Skip bg removal, just jump to 100%
+                    useAppStore.setState({
+                        processingProgress: 100,
+                        stepMessage: "Finalizing texture...",
+                    });
+                }
 
                 store.setFinalImage(finalDataUrl, processed.colorPalette);
             } catch (err) {
@@ -253,19 +269,32 @@ export function useExtraction(): UseExtractionReturn {
                 store.setProcessedImage(processedDataUrl);
 
                 // Background removal
-                store.setProcessingStep("removing-bg");
-                const finalDataUrl = await removeBackground(processedDataUrl, (bgProgress) => {
-                    const mappedProgress = 80 + bgProgress * 20;
-                    useAppStore.setState({
-                        processingProgress: Math.round(mappedProgress),
-                        stepMessage:
-                            bgProgress < 0.3
-                                ? "Loading AI model..."
-                                : bgProgress < 0.7
-                                    ? "Segmenting design..."
-                                    : "Finalizing transparency...",
+                const shouldSkipBgRemoval =
+                    detection.extractionApproach === "texture-remove" ||
+                    detection.extractionApproach === "direct";
+
+                let finalDataUrl = processedDataUrl;
+
+                if (!shouldSkipBgRemoval) {
+                    store.setProcessingStep("removing-bg");
+                    finalDataUrl = await removeBackground(processedDataUrl, (bgProgress) => {
+                        const mappedProgress = 80 + bgProgress * 20;
+                        useAppStore.setState({
+                            processingProgress: Math.round(mappedProgress),
+                            stepMessage:
+                                bgProgress < 0.3
+                                    ? "Loading AI model..."
+                                    : bgProgress < 0.7
+                                        ? "Segmenting design..."
+                                        : "Finalizing transparency...",
+                        });
                     });
-                });
+                } else {
+                    useAppStore.setState({
+                        processingProgress: 100,
+                        stepMessage: "Finalizing texture...",
+                    });
+                }
 
                 store.setFinalImage(finalDataUrl, processed.colorPalette);
             } catch (err) {

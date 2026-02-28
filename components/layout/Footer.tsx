@@ -13,7 +13,7 @@ export function Footer() {
                 <div className="flex items-center gap-3">
                     <Badge variant="secondary" className="gap-1.5 text-xs">
                         <Sparkles className="h-3 w-3 text-primary" />
-                        Powered by Gemini 2.5 Pro
+                        Powered by Gemini 3.0 Flash
                     </Badge>
                 </div>
             </div>

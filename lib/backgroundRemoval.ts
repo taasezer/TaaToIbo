@@ -25,6 +25,7 @@ export async function removeBackground(
     const blob = await response.blob();
 
     const resultBlob = await imglyRemoveBackground(blob, {
+        model: "isnet",
         progress: (key: string, current: number, total: number) => {
             if (onProgress && total > 0) {
                 onProgress(current / total);
