@@ -31,9 +31,9 @@ Your sole purpose is to locate the printed graphic, artwork, or all-over pattern
 You must classify the garment into one of TWO strictly distinct categories and follow the rules exactly:
 
 CATEGORY A: LOCALIZED GRAPHIC (e.g., Mickey Mouse, a logo, text, a central illustration)
-- TARGET: Center your bounding box and perspective points *tightly* around ONLY the graphic itself. Do not include empty shirt fabric.
+- TARGET: Your bounding box MUST encapsulate the ENTIRE graphic. Look for the outer-most extremities (e.g., floating text above the character, the very bottom of the shoes, the tips of the ears). Do NOT just box the face or torso. If there is text floating around the character, include it!
 - EXTRACTION APPROACH: You MUST set \`extractionApproach\` to \`"perspective-correct"\`. DO NOT set it to \`"texture-remove"\` or \`"direct"\`.
-- ALIGNMENT: The 4 points are the corners of an imaginary tight box around the graphic.
+- ALIGNMENT: The 4 points are the corners of an imaginary tight box around the ENTIRE graphic, from the highest text/ear to the lowest shoe.
 
 CATEGORY B: ALL-OVER PATTERN (e.g., floral shirt, checkered flannel, full-garment camouflage)
 - TARGET: Do NOT target the entire garment shape (avoid collars, sleeves, hems). Instead, target a clean, flat, rectangular section of the *pattern itself* from the chest/torso area that can be extracted as a seamless/repeating texture.
@@ -164,8 +164,9 @@ export async function detectPrintRegion(
                 errMsg.includes("resource exhausted");
 
             if (isRetryable && attempt < maxRetries - 1) {
-                // Exponential backoff: 1s, 2s, 4s
-                const backoffMs = Math.pow(2, attempt) * 1000;
+                // Exponential backoff: 2s, 4s, 8s, 16s, etc.
+                const backoffMs = Math.pow(2, attempt) * 2000;
+                console.warn(`[GEMINI] Rate limit or server error encountered (attempt ${attempt + 1}/${maxRetries}). Retrying in ${backoffMs}ms...`);
                 await sleep(backoffMs);
                 continue;
             }

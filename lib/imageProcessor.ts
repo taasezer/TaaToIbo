@@ -89,14 +89,30 @@ export async function enhanceDesign(buffer: Buffer): Promise<Buffer> {
         // Advanced unsharp mask for crisp details
         .sharpen({ sigma: 1.5, m1: 2.0, m2: 0.5 })
         // Apply a slight S-curve contrast boost and brightness
-        .linear(1.15, -10)
+        .linear(1.05, -2)
         // Boost saturation for vibrant colors
         .modulate({
-            saturation: 1.35,
-            brightness: 1.05
+            saturation: 1.2,
+            brightness: 1.0
         })
         .png({ quality: 100 })
         .toBuffer();
+}
+
+/**
+ * Creates a severely brightened and de-contrasted copy of the image specifically 
+ * for the AI background segmentation model. This prevents the model from thinking 
+ * that solid black colors (like Mickey Mouse's body) are empty background shadows.
+ */
+export async function prepareForSegmentation(buffer: Buffer): Promise<string> {
+    return sharp(buffer)
+        // Aggressively lift shadows and midtones to turn blacks into distinct greys
+        .gamma(2.5) // Gamma correction > 1 lightens midtones significantly
+        .linear(1.3, +40) // Boost multiplier and dramatically raise the noise floor (black point)
+        .png({ quality: 80 })
+        // Return base64 for the payload
+        .toBuffer()
+        .then((b) => b.toString("base64"));
 }
 
 /**

@@ -6,6 +6,7 @@ import {
     applyPerspectiveCorrection,
     enhanceDesign,
     extractColorPalette,
+    prepareForSegmentation,
 } from "@/lib/imageProcessor";
 import type { ApiResult, ProcessingResult } from "@/types";
 
@@ -81,7 +82,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiResult
         // Extract color palette
         const colorPalette = await extractColorPalette(processedBuffer, 5);
 
-        // Convert to base64
+        // Create the decoupled segmentation target (brightened for the AI)
+        const segmentationBase64 = await prepareForSegmentation(processedBuffer);
+
+        // Convert pristine image to base64
         const processedBase64 = processedBuffer.toString("base64");
 
         const processingTime = Date.now() - startTime;
@@ -91,6 +95,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiResult
                 success: true,
                 data: {
                     processedImageBase64: processedBase64,
+                    segmentationImageBase64: segmentationBase64,
                     width: finalMeta.width ?? 0,
                     height: finalMeta.height ?? 0,
                     colorPalette,

@@ -169,13 +169,15 @@ export function useExtraction(): UseExtractionReturn {
                     detection.extractionApproach === "texture-remove" ||
                     detection.extractionApproach === "direct";
 
+                const segmentationDataUrl = `data:image/png;base64,${processed.segmentationImageBase64}`;
+
                 let finalDataUrl = processedDataUrl;
 
                 if (!shouldSkipBgRemoval) {
-                    // Step: Client-side background removal (WASM)
+                    // Step: Client-side background removal (WASM) using the decoupled shadow-lifted image
                     store.setProcessingStep("removing-bg");
 
-                    finalDataUrl = await removeBackground(processedDataUrl, (bgProgress) => {
+                    finalDataUrl = await removeBackground(processedDataUrl, segmentationDataUrl, (bgProgress) => {
                         const mappedProgress = 80 + bgProgress * 20;
                         useAppStore.setState({
                             processingProgress: Math.round(mappedProgress),
@@ -273,11 +275,13 @@ export function useExtraction(): UseExtractionReturn {
                     detection.extractionApproach === "texture-remove" ||
                     detection.extractionApproach === "direct";
 
+                const segmentationDataUrl = `data:image/png;base64,${processed.segmentationImageBase64}`;
+
                 let finalDataUrl = processedDataUrl;
 
                 if (!shouldSkipBgRemoval) {
                     store.setProcessingStep("removing-bg");
-                    finalDataUrl = await removeBackground(processedDataUrl, (bgProgress) => {
+                    finalDataUrl = await removeBackground(processedDataUrl, segmentationDataUrl, (bgProgress) => {
                         const mappedProgress = 80 + bgProgress * 20;
                         useAppStore.setState({
                             processingProgress: Math.round(mappedProgress),

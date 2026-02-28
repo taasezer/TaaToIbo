@@ -40,6 +40,7 @@ export interface DetectionResult {
 
 export interface ProcessingResult {
   processedImageBase64: string;
+  segmentationImageBase64: string;
   width: number;
   height: number;
   colorPalette: string[];
