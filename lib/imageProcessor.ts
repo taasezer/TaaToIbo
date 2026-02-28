@@ -82,14 +82,20 @@ export async function applyPerspectiveCorrection(
 }
 
 /**
- * Enhance the extracted design: sharpen, normalize contrast, boost saturation.
+ * Enhance the extracted design for maximum visual appeal (pop, contrast, sharpness).
  */
 export async function enhanceDesign(buffer: Buffer): Promise<Buffer> {
     return sharp(buffer)
-        .sharpen({ sigma: 1.0, m1: 1.5, m2: 0.7 })
-        .normalize()
-        .modulate({ saturation: 1.15 })
-        .png({ quality: 95 })
+        // Advanced unsharp mask for crisp details
+        .sharpen({ sigma: 1.5, m1: 2.0, m2: 0.5 })
+        // Apply a slight S-curve contrast boost and brightness
+        .linear(1.15, -10)
+        // Boost saturation for vibrant colors
+        .modulate({
+            saturation: 1.35,
+            brightness: 1.05
+        })
+        .png({ quality: 100 })
         .toBuffer();
 }
 
